@@ -32,7 +32,7 @@ class gen3env(gym.Env):
 
     def reset(self):
         
-        self.robot.remove_scene()
+        # self.robot.remove_scene()
         self.robot.init_scene(peg_pose=self.peg_pose,hole_pose=self.hole_pose)
         obs=self.get_obs()
         self.render()
@@ -65,8 +65,14 @@ class gen3env(gym.Env):
         end_y=end_effect_pose.position.y
         end_z=end_effect_pose.position.z
         gripper_opening=self.robot.get_gripper_position()
-        peg_x,peg_y,peg_z=self.robot.get_obj_pose('peg')
-        hole_x,hole_y,hole_z=self.robot.get_obj_pose('hole')
+        # peg_x,peg_y,peg_z=self.robot.get_obj_pose('peg')
+        # hole_x,hole_y,hole_z=self.robot.get_obj_pose('hole')
+        peg_x=0
+        peg_y=0
+        peg_z=0
+        hole_x=0
+        hole_y=0
+        hole_z=0
         obs=np.array([end_x,end_y,end_z,gripper_opening,peg_x,peg_y,peg_z,hole_x,hole_y,hole_z])
         return obs 
     

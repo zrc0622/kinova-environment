@@ -54,9 +54,9 @@ from trajectory_msgs.msg import *
 import actionlib
 from std_srvs.srv import Empty
 from tf import TransformListener
-from robot_test import Robot
-from task_test import peg_in
-from gen3env_test import gen3env
+from robot import Robot
+from task import peg_in
+from gen3env import gen3env
 # from module import TD3,train
 import gym
 import numpy as np

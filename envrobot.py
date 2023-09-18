@@ -157,18 +157,18 @@ class Robot(object):
   #initial arm peg and hole
   def init_scene(self,peg_pose=[0.,0.,0.],hole_pose=[0.,0.,0.]):
     self.reach_named_position('retract')
-    # # rospy.wait_for_service("gazebo/spawn_sdf_model",timeout=5)
-    # peg_orientation = Quaternion(1,0,0,0)
-    # peg_pose=Pose(Point(peg_pose[0],peg_pose[1],peg_pose[2]),peg_orientation)
-    # peg_sdf_path='/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/object/peg/model.sdf'
-    # peg_xml= open(peg_sdf_path,'r').read()
-    # hole_orientation = Quaternion(0,0,0,1)
-    # hole_pose=Pose(Point(hole_pose[0],hole_pose[1],hole_pose[2]),hole_orientation)
-    # hole_sdf_path='/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/object/hole/model.sdf'
-    # hole_xml= open(hole_sdf_path,'r').read()
+    # rospy.wait_for_service("gazebo/spawn_sdf_model",timeout=5)
+    peg_orientation = Quaternion(1,0,0,0)
+    peg_pose=Pose(Point(peg_pose[0],peg_pose[1],peg_pose[2]),peg_orientation)
+    peg_sdf_path='/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/object/peg/model.sdf'
+    peg_xml= open(peg_sdf_path,'r').read()
+    hole_orientation = Quaternion(0,0,0,1)
+    hole_pose=Pose(Point(hole_pose[0],hole_pose[1],hole_pose[2]),hole_orientation)
+    hole_sdf_path='/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/object/hole/model.sdf'
+    hole_xml= open(hole_sdf_path,'r').read()
     
-    # self.spawn('peg',peg_xml,"",peg_pose,'world')
-    # self.spawn('hole',hole_xml,"",hole_pose,'world')
+    self.spawn('peg',peg_xml,"",peg_pose,'world')
+    self.spawn('hole',hole_xml,"",hole_pose,'world')
 
   #clean scene
   def remove_scene(self):

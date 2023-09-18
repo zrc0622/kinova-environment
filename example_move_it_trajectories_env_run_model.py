@@ -55,13 +55,14 @@ def bc_run():
     model_name = 'mlp'
     run_env = 'env'
     
-    frame = 6
+    frame = 5
     episodes = 10
-    steps = 200
-    model_path = '/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/model/model_epoch50000.pth'
+    steps = 300
+    model_path = '/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/model/model_epoch200000.pth'
 
     if run_env == 'env':
         env=gym.make(id='peg_in_hole-v0')
+    
     if run_env == 'robot':
         env=RobotEnv()
 
@@ -135,7 +136,7 @@ def bc_run():
         # env.robot.move(pose=[0.5, 0, 0.5])
   
     if model_name == 'lstm':
-        model = LSTMModel(4, 64, 4)
+        model = LSTMModel(4, 128, 4)
         model.load_state_dict(torch.load(model_path))
 
         for episode in range(episodes):
@@ -156,11 +157,15 @@ def bc_run():
                     action = action.tolist()
                     action = origin_data(action)
 
-                    env.robot.move(pose=action[:3])
-                    env.robot.reach_gripper_position(action[-1])
+                    env.robot.move(pose=action[:3], tolerance=0.0001)
+                    print(origin_data(obs)[-1])
+
+                    if step < 120:
+                        env.robot.reach_gripper_position(action[-1]+0.1)
 
                     next_obs = env.get_obs()
-                    next_obs = normalize_data(np.array(next_obs))
+                    next_obs = np.array(next_obs)
+                    next_obs = normalize_data(next_obs[:4])
 
                     obs = next_obs
 
