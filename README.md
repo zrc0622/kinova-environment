@@ -1,12 +1,22 @@
-# KinovaArm PegInsertTask with DRL
-Train Kinova Gen3 arm in Gazebo with deep reinforcement learning
+the environment of Kinova Gen3 arm in Gazebo and Robot
+# how to use
+## in Gazebo
+### introduction
 
-source devel/setup.bash
-roslaunch kortex_driver kortex_driver.launch gripper:=robotiq_2f_85
-roslaunch kortex_gazebo spawn_kortex_robot.launch gripper:=robotiq_2f_85
+1. 环境：`./Gen3env/gen3env.py`and`./envrobot.py`
+### code to use
 
-source devel/setup.bash
-roslaunch kortex_examples moveit_example.launch
+1. `source devel/setup.bash`
+2. `roslaunch kortex_gazebo spawn_kortex_robot.launch gripper:=robotiq_2f_85`
+## in Robot
+### introduction
 
-Gen3env文件夹里的gen3env.py是gazebo，使用的是envrobot.py
-主文件夹的gen3env.py是实体机械臂，使用的是robot.py
+1. 环境：`./gen3env.py`and`./robot.py`
+### code to use
+
+1. `source devel/setup.bash`
+2. `roslaunch kortex_driver kortex_driver.launch gripper:=robotiq_2f_85 `
+# how to run
+
+1. `source devel/setup.bash`
+2. `roslaunch kortex_examples moveit_example.launch`
