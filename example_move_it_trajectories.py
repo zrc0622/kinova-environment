@@ -94,7 +94,7 @@ def main():
     action_array = np.array(action_list)
     data = [state_array, action_array]
 
-    file_name = "/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/data5.csv"
+    file_name = "/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/expert_data/new_hole_optimize2/data2.csv"
     with open(file_name, 'w') as file:
       writer = csv.writer(file)
       writer.writerows(data)
@@ -104,8 +104,8 @@ def main():
 def task():
   time.sleep(1)
   envt=gym.make(id='peg_in_hole-v0')
-  peg_in(robot=env.robot,peg_pose=[0.32,-0.003,0.056],hole_pose=[0.5,-0.1671,0.165])
-  # peg_pose=[0,0,0.3] hole_pose=[0.8,-0.5,0.3]
+  peg_in(robot=env.robot,peg_pose=[0.32,-0.005,0.05],hole_pose=[0.545,-0.2,0.185]) # 0.32,-0.003,0.056],hole_pose=[0.5,-0.1671,0.165])
+
 
 
 if __name__ == '__main__': 
@@ -113,6 +113,8 @@ if __name__ == '__main__':
   env.reset()
   env.robot.move(pose=[0.3, 0, 0.3], tolerance=0.0001) # 前后 左右 上下
   env.robot.reach_gripper_position(0)
+
+  time.sleep(25)
 
   thread1 = threading.Thread(target=main)
   thread2 = threading.Thread(target=task)

@@ -15,8 +15,10 @@ the environment of Kinova Gen3 arm in Gazebo and Robot
 ### code to use
 
 1. `source devel/setup.bash`
-2. `roslaunch kortex_driver kortex_driver.launch gripper:=robotiq_2f_85 `
+2. `roslaunch kortex_driver kortex_driver.launch gripper:=robotiq_2f_85`
 # how to run
 
 1. `source devel/setup.bash`
 2. `roslaunch kortex_examples moveit_example.launch`
+
+_env_get_data

@@ -162,9 +162,10 @@ class Robot(object):
     peg_pose=Pose(Point(peg_pose[0],peg_pose[1],peg_pose[2]),peg_orientation)
     peg_sdf_path='/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/object/peg/model.sdf'
     peg_xml= open(peg_sdf_path,'r').read()
-    hole_orientation = Quaternion(0,0,0,1)
+    # hole_orientation = Quaternion(0,0,0,1) # old hole
+    hole_orientation = Quaternion(np.sqrt(2)/2, np.sqrt(2)/2, 0, 0) # new hole
     hole_pose=Pose(Point(hole_pose[0],hole_pose[1],hole_pose[2]),hole_orientation)
-    hole_sdf_path='/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/object/hole/model.sdf'
+    hole_sdf_path='/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/new_object/hole_new/model.sdf'
     hole_xml= open(hole_sdf_path,'r').read()
     
     self.spawn('peg',peg_xml,"",peg_pose,'world')

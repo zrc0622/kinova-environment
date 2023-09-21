@@ -20,8 +20,8 @@ class gen3env(gym.Env):
     def __init__(self):
         super(gen3env,self).__init__()
         self.robot=Robot()
-        self.peg_pose=[-0.22,0,0.3]  #[0.1,0,0.3] 
-        self.hole_pose=[0.7,-0.4,0.3] #[1.,-0.2,0.3] 
+        self.peg_pose=[-0.2,0,0.3]  #[0.1,0,0.3] 
+        self.hole_pose=[0.7,-0.2,0.3] #[1.,-0.2,0.3] 
         self.info=None
         self.fail_num=0
         self.step_num=0
