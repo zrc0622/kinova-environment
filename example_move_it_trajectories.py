@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import sys
 sys.path.append('/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it')
 import time
@@ -13,117 +15,167 @@ import actionlib
 from std_srvs.srv import Empty
 from tf import TransformListener
 from robot import Robot
-from task import peg_in
-from Gen3Env.gen3env import gen3env
-# from gen3env_zuo import gen3env
-# from module import TD3,train
+# from task import peg_in
+from gen3env import gen3env as RobotEnv
 import gym
+import torch.nn as nn
+from network import MLPModel, LSTMModel
+import torch
+from Gen3Env.gen3env import gen3env
+from stable_baselines3 import TD3
+import os
 import numpy as np
-import csv
-import select
-import threading
-import time
 
-def main(): 
-    # Initialize ROS node 
+def normalize_data(data):
+    min_vals = np.array([0.299900302, -0.17102845, 0.05590736, -0.000087572115])
+    max_vals = np.array([0.58015204, 0.00020189775, 0.299989649, 0.36635616])
+    normalized_data = (data - min_vals) / (max_vals - min_vals)
+    return normalized_data
 
+def origin_data(data):
+    min_vals = np.array([0.299900302, -0.17102845, 0.05590736, -0.000087572115])
+    max_vals = np.array([0.58015204, 0.00020189775, 0.299989649, 0.36635616])
+    origin_data_data = (max_vals - min_vals) * data + min_vals
+    return origin_data_data
+
+def rl_train():
+   env=gym.make(id='peg_in_hole-v0')
+   env.reset()
+   log_path='./log'
+   if not os.path.exists(log_path):
+        os.makedirs(log_path)
+  #  print(torch.cuda.is_available())
+   if torch.cuda.is_available():
+        print('cuda is available, train on GPU!')
+   model=TD3('MlpPolicy', env, verbose=1,tensorboard_log=log_path,device='cuda')
+   model.learn(total_timesteps=1000)
+
+def bc_run():
+    # env=gym.make(id='Pendulum-v1')
+    model_name = 'lstm'
+    run_env = 'env'
     
-    # Create a Robot instance 
-    env2 = gym.make(id='peg_in_hole-v0')
+    frame = 5
+    episodes = 10
+    steps = 300
+    model_path = '/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/model/model_epoch2000000.pth'
+
+    if run_env == 'env':
+        env=gym.make(id='peg_in_hole-v0')
     
-    # if robot.is_init_success: 
-    #     # Continuously retrieve and print Cartesian pose 
-    #     rate = rospy.Rate(1) 
-    #     # Rate of 1 Hz 
-    #     while not rospy.is_shutdown(): 
-    #       cartesian_pose = robot.get_cartesian_pose() 
-    #       print("Cartesian Pose:") 
-    #       print("Position: [x={}, y={}, z={}]".format(cartesian_pose.position.x, cartesian_pose.position.y, cartesian_pose.position.z)) 
-    #       print("Orientation: [x={}, y={}, z={}, w={}]".format(cartesian_pose.orientation.x, cartesian_pose.orientation.y, cartesian_pose.orientation.z, cartesian_pose.orientation.w)) 
-    #       print("---") 
-    #       rate.sleep() 
-    #     else: 
-    #        print("Robot initialization failed.") 
-    
-    action = [0,0,0,0]
-    state =  [0,0,0,0]
-    action_list = []
-    state_list = []
-    step = 0
-    change_peg_state = False
-    change_hole_state = False 
+    if run_env == 'robot':
+        env=RobotEnv()
 
-    end = 10000
+    if model_name == 'mlp':
+        model = MLPModel(frame*4, 4)
+        model.load_state_dict(torch.load(model_path))
 
-    for step in range(1000):   
-        
-      # rlist, _, _ = select.select([sys.stdin], [], [], 0)
-      # if rlist:
-      #   break
+        # # absolute
+        # for episode in range(10):
+        #   print("episode: {}".format(episode))
+        #   env.robot.move(pose=[0.3, 0, 0.3])
+        #   obs = env.reset()
+        #   obs = np.array([[0.3, 0, 0.3, 0],[0.3, 0, 0.3, 0],[0.3, 0, 0.3, 0],[0.3, 0, 0.3, 0]])
+        #   # print(type(obs))
+        #   # print(obs)
+        #   model_obs = obs[:4]
+        #   done = False
+        #   # while not done:
+        #   for step in range(2):
+        #     with torch.no_grad():
+        #       action = model(torch.Tensor(model_obs)).tolist()
+        #       # print(type(action))
+        #     next_obs,reward,done,_=env.step(action=action)
+        #     # print('reward={}'.format(reward))
+        #     model_obs = next_obs[:4]
+        # env.robot.move(pose=[0.3, 0, 0.3])
 
-      state = action
-      action = env2.get_obs()[:4]
+        # new absolute
+        for episode in range(episodes):
+            print("episode: {}".format(episode))
+            obs = env.reset()
+            env.robot.move(pose=[0.3, 0, 0.3], tolerance=0.0001) # 前后 左右 上下
+            env.robot.reach_gripper_position(0)
+            obs = env.get_obs()
+            obs = normalize_data(np.array(obs[:4]))
+            obs = np.tile(obs, (frame, 1))
+            obs = obs.flatten()
+            with torch.no_grad():
+                for step in range(steps):
+                    print(f'step: {step}')
+                    input_tensor = torch.Tensor(obs)
+                    output_tensor = model(input_tensor)
+                    action = output_tensor.tolist()
+                    action = origin_data(action)
+                    
+                    env.robot.move(pose=action[:3])
+                    env.robot.reach_gripper_position(action[-1])
+                    
+                    obs = obs[4:]
+                    next_obs = env.get_obs()
+                    next_obs = normalize_data(np.array(next_obs[:4]))
 
-      if step != 0:
-        print("state:   {}".format(state))
-        print("action:  {}".format(action))
-        print("--------------------------------")
-        
-        if (not change_peg_state) and (state[3] > 0.3):
-          print("change peg")
-          change_peg_state = True
+                    if frame !=1:
+                        obs = np.concatenate((obs, next_obs))
 
-        if (not change_hole_state) and (state[3] < 0.3) and change_peg_state:
-          print("change hole")
-          change_hole_state = True
-          end = step + 100
-        
-        if change_hole_state and change_peg_state:
-          None
+        # # delt
+        # for episode in range(10):
+        #   print("episode: {}".format(episode))
+        #   env.robot.move(pose=[0.5, 0, 0.5])
+        #   print("start")
+        #   obs = env.reset()
+        #   model_obs = obs[:4]
+        #   done = False
+        #   # while not done:
+        #   for step in range(2):
+        #     with torch.no_grad():
+        #       action = model(torch.Tensor(model_obs)).tolist() + model_obs
+        #     next_obs,reward,done,_=env.step(action=action)
+        #     # print('reward={}'.format(reward))
+        #     model_obs = next_obs[:4]
+        # env.robot.move(pose=[0.5, 0, 0.5])
+  
+    if model_name == 'lstm':
+        model = LSTMModel(4, 128, 4)
+        model.load_state_dict(torch.load(model_path))
 
-        if step == end:
-          break
+        for episode in range(episodes):
+            print(f"episode: {episode}")
+            obs = env.reset()
+            env.robot.move(pose=[0.3, 0, 0.3], tolerance=0.0001) # 前后 左右 上下
+            env.robot.reach_gripper_position(0)
+            obs = env.get_obs()
+            obs = normalize_data(np.array(obs[:4]))
 
-        state_list.append(np.array(state))
-        action_list.append(np.array(action))
-        # rate.sleep() 
+            with torch.no_grad():
+                hidden = None
+                for step in range(steps):
+                    print(f'step: {step}')
+                    input_tensor = torch.tensor(obs, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
+                    output_tensor, hidden = model(input_tensor, hidden) # (1,1,4)
+                    action = output_tensor.squeeze().squeeze() # (4,)
+                    action = action.tolist()
+                    action = origin_data(action)
+                    
+                    print('1',action)
+                    env.robot.move(pose=action[:3], tolerance=0.0001)
 
-    print("change peg = {}, change hole = {}".format(change_peg_state, change_hole_state))
-    np.set_printoptions(linewidth=np.inf)
-    state_array = np.array(state_list)
-    action_array = np.array(action_list)
-    data = [state_array, action_array]
+                    if step<100:
+                        env.robot.reach_gripper_position(action[-1]/0.78)
+                    # env.robot.reach_gripper_position(0.3)
+                
+                    # if step < 100:
+                    #     env.robot.reach_gripper_position(action[-1]+0.1)
 
-    file_name = "/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/expert_data/new_hole_optimize2/data2.csv"
-    with open(file_name, 'w') as file:
-      writer = csv.writer(file)
-      writer.writerows(data)
-      print("save csv")
-      print("step={}".format(step))
+                    next_obs = env.get_obs()
+                    next_obs = np.array(next_obs)
 
-def task():
-  time.sleep(1)
-  envt=gym.make(id='peg_in_hole-v0')
-  peg_in(robot=env.robot,peg_pose=[0.32,-0.005,0.05],hole_pose=[0.545,-0.2,0.185]) # 0.32,-0.003,0.056],hole_pose=[0.5,-0.1671,0.165])
+                    aaa=next_obs[:4]
+                    print('2',aaa)
 
+                    next_obs = normalize_data(next_obs[:4])
 
+                    obs = next_obs
 
-if __name__ == '__main__': 
-  env=gym.make(id='peg_in_hole-v0')
-  env.reset()
-  env.robot.move(pose=[0.3, 0, 0.3], tolerance=0.0001) # 前后 左右 上下
-  env.robot.reach_gripper_position(0)
-
-  time.sleep(25)
-
-  thread1 = threading.Thread(target=main)
-  thread2 = threading.Thread(target=task)
-  thread1.start()
-  thread2.start()
-  thread1.join()
-  thread2.join()
-
-# env.robot.move(pose=[0.3, 0, 0.3])
-# self.peg_pose=[-0.2,0,0.3]  
-# self.hole_pose=[0.7,-0.4,0.3]
-# peg_in(robot=env.robot,peg_pose=[0.32,-0.003,0.056],hole_pose=[0.5,-0.1671,0.165])
+if __name__ == '__main__':
+    bc_run()

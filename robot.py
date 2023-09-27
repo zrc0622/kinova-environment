@@ -13,7 +13,7 @@ from std_srvs.srv import Empty
 from tf import TransformListener
 import numpy as np
 import time
-
+import subprocess
 
 class Robot(object):
   """ExampleMoveItTrajectories"""
@@ -169,6 +169,7 @@ class Robot(object):
     
     # self.spawn('peg',peg_xml,"",peg_pose,'world')
     # self.spawn('hole',hole_xml,"",hole_pose,'world')
+
 
   #clean scene
   def remove_scene(self):
