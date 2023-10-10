@@ -128,8 +128,11 @@ class Robot(object):
     gripper_joint = self.robot.get_joint(self.gripper_joint_name)
     gripper_max_absolute_pos = gripper_joint.max_bound()
     gripper_min_absolute_pos = gripper_joint.min_bound()
+    print('+'*50)
+    print(gripper_max_absolute_pos - gripper_min_absolute_pos) 
+    print(relative_position)
     try:
-      val = gripper_joint.move(relative_position * (gripper_max_absolute_pos - gripper_min_absolute_pos) + gripper_min_absolute_pos, True)
+      val = gripper_joint.move(relative_position, True)
       return val
     except:
       return False 
@@ -165,7 +168,7 @@ class Robot(object):
     # hole_orientation = Quaternion(0,0,0,1) # old hole
     hole_orientation = Quaternion(np.sqrt(2)/2, np.sqrt(2)/2, 0, 0) # new hole
     hole_pose=Pose(Point(hole_pose[0],hole_pose[1],hole_pose[2]),hole_orientation)
-    hole_sdf_path='/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/new_object/hole_new/model.sdf'
+    hole_sdf_path='/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/new_object/hole_new3/model.sdf'
     hole_xml= open(hole_sdf_path,'r').read()
     
     self.spawn('peg',peg_xml,"",peg_pose,'world')

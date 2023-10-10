@@ -58,7 +58,7 @@ def bc_run():
     frame = 5
     episodes = 10
     steps = 300
-    model_path = '/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/model/model_epoch2000000.pth'
+    model_path = '/catkin_workspace/src/ros_kortex/kortex_examples/src/move_it/model/52.pth'
 
     if run_env == 'env':
         env=gym.make(id='peg_in_hole-v0')
@@ -160,7 +160,7 @@ def bc_run():
                     print('1',action)
                     env.robot.move(pose=action[:3], tolerance=0.0001)
 
-                    if step<100:
+                    if step<55:
                         env.robot.reach_gripper_position(action[-1]/0.78)
                     # env.robot.reach_gripper_position(0.3)
                 
@@ -176,6 +176,14 @@ def bc_run():
                     next_obs = normalize_data(next_obs[:4])
 
                     obs = next_obs
+def test_gripper():
+    env=gym.make('peg_in_hole-v0')
+    env.reset()
+    # env.robot.reach_gripper_position(0.6)
+    # gripper_pos=env.robot.get_gripper_position()
+    # print('='*50)
+    # print(gripper_pos)
 
 if __name__ == '__main__':
     bc_run()
+    # test_gripper()
