@@ -20,5 +20,3 @@ the environment of Kinova Gen3 arm in Gazebo and Robot
 
 1. `source devel/setup.bash`
 2. `roslaunch kortex_examples moveit_example.launch`
-
-_env_get_data
